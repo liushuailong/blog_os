@@ -7,6 +7,8 @@ pub extern "C" fn _start() -> ! {
     loop {}
 }
 
+// The standard library provides its own panic handler function, but in a no_std environment we need to define it ourselves:
+// 标准库中提供了panic处理函数，所以我们需要定义我们自己的panic处理函数
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> !{
     loop {}
