@@ -21,8 +21,11 @@ cargo rustc -- -C link-args="-e __start -static -nostartfiles"
 # 添加rsut源码，才能重新编译核心库
 rustup component add rust-src --toolchain nightly-x86_64-pc-windows-msvc
 cargo build --target x86_64-blog_os.json
+# To install the tool, go into your home directory (or any directory outside of your cargo project) and execute the following command in your terminal
+cargo install bootimage # 不能在项目目录下
 rustup component add llvm-tools-preview
-cargo install bootimage --target x86_64-blog_os.json
+
+
 ```
 
 ```bash
