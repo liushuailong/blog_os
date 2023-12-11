@@ -24,8 +24,8 @@ cargo build --target x86_64-blog_os.json
 # To install the tool, go into your home directory (or any directory outside of your cargo project) and execute the following command in your terminal
 cargo install bootimage # 不能在项目目录下
 rustup component add llvm-tools-preview
-
-
+# 在vscode中使用cargo run 时找不到qemu软件地址，而在系统的powershell中就可以，应该是vscode的中断没有将该环境变量引入，可能时由于我没有在系统变量中添加，只添加了用户环境变量。
+cargo run
 ```
 
 ```bash
