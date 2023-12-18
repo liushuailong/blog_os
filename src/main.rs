@@ -1,8 +1,12 @@
 #![no_std] // 不使用标准库，应为标准库的实现依赖具体的操作系统
 #![no_main] // 不使用rust提供的入口函数，main函数依赖运行时的实现，由于我们要自己编写操作系统，故需要使用硬件系统本身的入口函数
+#![feature(custom_test_frameworks)]
+#![test_runner(blog_os::test_runner)]
+#![reexport_test_harness_main = "test_main"]
 
 use core::panic::PanicInfo;
-mod vga_buffer;
+use blog_os::println;
+
 
 // static HELLO: &[u8] = b"Hello World!";
 
@@ -21,15 +25,24 @@ pub extern "C" fn _start() -> ! {
     // vga_buffer::WRITER.lock().write_str("Hello again").unwrap();
     // write!(vga_buffer::WRITER.lock(), ", Some numbers: {} {}", 42, 1.337).unwrap();
     println!("Hello world{}", "!");
-    println!("Hello world2{}", "!");
-    panic!("Some panic message");
+
+    #[cfg(test)]
+    test_main();
+
     loop {}
 }
 
 // The standard library provides its own panic handler function, but in a no_std environment we need to define it ourselves:
 // 标准库中提供了panic处理函数，所以我们需要定义我们自己的panic处理函数
+#[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> !{
     println!("{}", info);
     loop {}
+}
+
+#[cfg(test)]
+#[panic_handler]
+fn panic(info: &PanicInfo) -> !{
+    blog_os::test_panic_handler(info)
 }

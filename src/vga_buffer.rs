@@ -96,7 +96,6 @@ impl Writer {
     }
 
     fn clear_row(&mut self, row: usize) {
-        // TODO
         let blank = ScreenChar {
             ascii_character: b' ',
             color_code: self.color_code,
@@ -166,3 +165,19 @@ pub fn _print(args: fmt::Arguments) {
     WRITER.lock().write_fmt(args).unwrap();
 }
 
+#[test_case]
+fn test_print_many() {
+    for _ in 0..200 {
+        print!("test_println_many output");
+    }
+}
+
+#[test_case]
+fn test_println_output() {
+    let s = "Some test string that fits on a single line";
+    println!("{s}");
+    for (i, c) in s.chars().enumerate() {
+        let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT -2][i].read();
+        assert_eq!(char::from(screen_char.ascii_character), c);
+    }
+}
