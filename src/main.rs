@@ -34,17 +34,21 @@ pub extern "C" fn _start() -> ! {
     //     *(0xdeadbedf as *mut u8) = 42;
     // };
 
-    fn stack_overflow() {
-        stack_overflow();
-    }
-    stack_overflow();
+    // fn stack_overflow() {
+    //     stack_overflow();
+    // }
+    // stack_overflow();
 
     #[cfg(test)]
     test_main();
 
     println!("It did not crash!");
 
-    loop {}
+    blog_os::hlt_loop();
+    // loop {
+    //     use blog_os::print;
+    //     print!("-");
+    // }
 }
 
 // The standard library provides its own panic handler function, but in a no_std environment we need to define it ourselves:
@@ -53,7 +57,8 @@ pub extern "C" fn _start() -> ! {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> !{
     println!("{}", info);
-    loop {}
+    blog_os::hlt_loop();
+    // loop {}
 }
 
 #[cfg(test)]
