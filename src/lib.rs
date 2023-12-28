@@ -10,6 +10,8 @@ pub mod vga_buffer;
 pub mod interrupts;
 pub mod gdt;
 pub mod memory;
+extern crate alloc;
+pub mod allocator;
 
 use core::panic::PanicInfo;
 

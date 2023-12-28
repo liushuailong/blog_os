@@ -9,6 +9,13 @@ use blog_os::println;
 use bootloader::{BootInfo, entry_point};
 // use x86_64::structures::paging::{PageTable, Page};
 entry_point!(kernel_main);
+extern crate alloc;
+use alloc::{
+    vec::Vec,
+    vec,
+    rc::Rc,
+    boxed::Box,
+};
 
 
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
@@ -16,57 +23,43 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     use x86_64::VirtAddr;
     // use x86_64::structures::paging::Translate;
     use blog_os::memory;
-    use x86_64::structures::paging::Page;
+    // use x86_64::structures::paging::Page;
     // use x86_64::VirtAddr;
     use blog_os::memory::BootInfoFrameAllocator;
+    use blog_os::allocator;
     println!("Hello world {}", "!");
     blog_os::init();
     let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
     let mut mapper = unsafe { memory::init(phys_mem_offset)};
-    // let l4_table: &'static mut PageTable = unsafe {
-    //     active_level_4_table(phys_mem_offset)
-    // };
-    // for (i, entry) in l4_table.iter().enumerate() {
-    //     if !entry.is_unused() {
-    //         println!("L4 Entry {}: {:?}", i, entry);
-
-    //         let phys = entry.frame().unwrap().start_address();
-    //         let virt = phys.as_u64() + boot_info.physical_memory_offset;
-    //         let ptr = VirtAddr::new(virt).as_mut_ptr();
-    //         let l3_table: &PageTable = unsafe { &*ptr };
-    //         for (i, entry) in l3_table.iter().enumerate() {
-    //             if !entry.is_unused() {
-    //                 println!("L3 Entry {}: {:?}", i, entry);
-    //             }
-    //         }
-    //     }
-    // }
-
-    // let addresses = [
-    //     0xb8000,
-    //     0x201008,
-    //     0x0100_0020_1a10,
-    //     boot_info.physical_memory_offset,
-    // ];
-
-    // for &address in &addresses {
-    //     let virt = VirtAddr::new(address);
-    //     let phys = mapper.translate_addr(virt);
-    //     println!("{:?} -> {:?}", virt, phys);
-    // }
 
     let mut frame_allocator = unsafe {
         BootInfoFrameAllocator::init(&boot_info.memory_map)
     };
 
-    let page = Page::containing_address(VirtAddr::new(0xdeadbeaf000));
-    memory::create_example_mapping(page, &mut mapper, &mut frame_allocator);
+    // let page = Page::containing_address(VirtAddr::new(0xdeadbeaf000));
+    // memory::create_example_mapping(page, &mut mapper, &mut frame_allocator);
 
-    let page_ptr: *mut u64 = page.start_address().as_mut_ptr();
-    unsafe {
-        page_ptr.offset(400).write_volatile(0x_f021_f077_f065_f04e)
-    };
+    // let page_ptr: *mut u64 = page.start_address().as_mut_ptr();
+    // unsafe {
+    //     page_ptr.offset(400).write_volatile(0x_f021_f077_f065_f04e)
+    // };
 
+    allocator::init_heap(&mut mapper, &mut frame_allocator).expect("heap initialization failed");
+
+    // let x = Box::new(41);
+    // println!("heap value at {:p}", x);
+
+    // let mut vec = Vec::new();
+    // for i in 0..500 {
+    //     vec.push(i);
+    // }
+    // println!("vec at {:p}", vec.as_slice());
+
+    // let reference_counted = Rc::new(vec![1, 2, 3]);
+    // let clone_counted = reference_counted.clone();
+    // println!("current reference count is {}", Rc::strong_count(&clone_counted));
+    // core::mem::drop(reference_counted);
+    // println!("reference count is {}", Rc::strong_count(&clone_counted));
 
     #[cfg(test)]
     test_main();
