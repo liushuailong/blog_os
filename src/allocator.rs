@@ -1,8 +1,11 @@
+pub mod bump;
+pub mod linked_list;
+pub mod fixed_size_block;
 use alloc::alloc::{
     GlobalAlloc,
     Layout,
 };
-// use core::ptr::null_mut;
+use core::mem;
 use x86_64::{
     structures::paging::{
         mapper::MapToError,
@@ -56,8 +59,41 @@ pub fn init_heap(mapper: &mut impl Mapper<Size4KiB>, frame_allocator: &mut impl 
     Ok(())
 }
 
-use linked_list_allocator::LockedHeap;
+// use linked_list_allocator::LockedHeap;
 
+// #[global_allocator]
+// static ALLOCATOR: LockedHeap = LockedHeap::empty();
+
+// use bump::BumpAllocator;
+
+// #[global_allocator]
+// static ALLOCATOR: Locked<BumpAllocator> = Locked::new(BumpAllocator::new());
+
+// use linked_list::LinkedListAllocator;
+// #[global_allocator]
+// static ALLOCATOR: Locked<LinkedListAllocator> = Locked::new(LinkedListAllocator::new()); 
+
+use fixed_size_block::FixedSizeBlockAllocator;
 #[global_allocator]
-static ALLOCATOR: LockedHeap = LockedHeap::empty();
+static ALLOCATOR: Locked<FixedSizeBlockAllocator> = Locked::new(FixedSizeBlockAllocator::new());
 
+// 不能为标准库或者外部库的结构体实现标准库或者外部库的特性；需要使用本地的结构体对外部库库中的Mutex进行保证，才能为其实现GlobalAlloc特性；
+pub struct Locked<A> {
+    inner: spin::Mutex<A>,
+}
+
+impl<A> Locked<A> {
+    pub const fn new(inner: A) -> Self{
+        Locked {
+            inner: spin::Mutex::new(inner),
+        }
+    }
+
+    pub fn lock(&self) -> spin::MutexGuard<A> {
+        self.inner.lock()
+    }
+}
+
+pub fn align_up(addr: usize, align: usize) -> usize {
+    (addr + align - 1) & !(align - 1)
+}
