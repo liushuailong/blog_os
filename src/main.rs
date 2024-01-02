@@ -4,8 +4,8 @@
 #![test_runner(blog_os::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
-use core::panic::PanicInfo;
-use blog_os::println;
+use core::{panic::PanicInfo, num};
+use blog_os::{println, task::keyboard};
 use bootloader::{BootInfo, entry_point};
 // use x86_64::structures::paging::{PageTable, Page};
 entry_point!(kernel_main);
@@ -16,6 +16,11 @@ use alloc::{
     rc::Rc,
     boxed::Box,
 };
+use blog_os::task::{
+    Task,
+    sample_executor::SimpleExecutor,
+};
+use blog_os::task::executor::Executor;
 
 
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
@@ -60,6 +65,11 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     // println!("current reference count is {}", Rc::strong_count(&clone_counted));
     // core::mem::drop(reference_counted);
     // println!("reference count is {}", Rc::strong_count(&clone_counted));
+    // let mut executor = SimpleExecutor::new();
+    let mut executor = Executor::new();
+    executor.spawn(Task::new(example_task()));
+    executor.spawn(Task::new(keyboard::print_keypresses()));
+    executor.run();
 
     #[cfg(test)]
     test_main();
@@ -143,4 +153,14 @@ fn panic(info: &PanicInfo) -> !{
 #[panic_handler]
 fn panic(info: &PanicInfo) -> !{
     blog_os::test_panic_handler(info)
+}
+
+
+async fn async_number() -> u32 {
+    42
+}
+
+async fn example_task() {
+    let number = async_number().await;
+    println!("async number: {}", number);
 }
